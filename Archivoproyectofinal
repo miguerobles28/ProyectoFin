@@ -1,0 +1,147 @@
+#include <iostream>
+#include <math.h>
+using namespace std;
+void parabolico(float v01, float y00 , float teta ,float tempo, bool wishf ,float k ,float rp);
+void elasticas(float v01,float m1,float v02,float m2);
+void rebotes(float y00, float m1);
+
+
+float g = 9.80665f;
+bool wishf = 0; /* booleano por si desea friccion en el parabolico*/
+short int elegi = 0; /* variable para el switch de funciones*/
+
+float m1 = 0,m2 = 0,h = 0 ,tempo = 0,v01 = 0,y00 = 0,teta = 0,rp = 0,v02 = 0,k = 0, vf1 = 0,vf2 = 0;
+
+int main(){
+
+    cout<<"Bienvenido :)"<<endl;
+    cout<<"Menu de Seleccion"<<endl;
+    cout<<"1- Movimiento Parabolico"<<endl;
+    cout<<"2- Colisiones Elasticas"<<endl;
+    cout<<"3- Rebotes"<<endl;  /* Menu de inicio */
+    retornado:  /* etiqueta para el goto*/
+    cout<<"Digite:";
+    cin>>elegi;
+    switch(elegi){
+    case 1:
+        cout<<"Velocidad inicial:"; //float v01, y00 , teta , tempo wishf , k , rp
+        cin>>v01;
+        cout<<"Posicion inical en Y:";
+        cin>>y00;
+        cout<<"Angulo de lanzamiento:";
+        cin>>teta;
+        cout<<"Digite un tiempo:";
+        cin>>tempo;
+        cout<<"Digite 1 si desea influencia de la friccion 0 si no la desea:";
+        cin>>wishf;
+        if(wishf==1){
+            cout<<"Digite las constante de friccion:";
+            cin>>k;
+            cout<<"Radio de la particula:";
+            cin>>rp;
+
+        }
+        parabolico(v01, y00 , teta , tempo , wishf , k , rp);
+    break;
+
+    case 2:
+        cout<<"Velocidad Particula 1:"; //float v01,float m1,float v02,float m2
+        cin>>v01;
+        cout<<"Masa Particula 1:";
+        cin>>m1;
+        cout<<"Velocidad Particula 2:";
+        cin>>v02;
+        cout<<"Masa Particula 2:";
+        cin>>m2;
+        elasticas(v01, m1, v02, m2);
+    break;
+
+    case 3:
+        cout<<"Altura inicial:";
+        cin>>y00;
+        cout<<"Masa de la particula:";
+        cin>>m1;
+
+        rebotes(y00,m1);
+    break;
+
+    default:
+        cout<<"Digito una opcion no valida >:c"<<endl;
+        goto retornado; /* instruccion para regresar a cierto parte del codigo*/
+    }
+    return 0;
+}
+
+
+
+void parabolico(float v01, float y00 , float teta ,float tempo, bool wishf ,float k ,float rp){
+    float x1 = 0,x2 = 0,v0x = 0,v0y = 0,tt = 0,vx = 0,vy = 0,x = 0,y = 0,t1 = 0,v = 0,u = 0,ux = 0, uy=0,alpha = 0;
+    v0x = v01*cos(teta); /* velocidad en x*/
+    v0y = v01*sin(teta); /* velocidad en y*/
+
+
+    if(wishf == 1){ /*basado en http://www.sc.ehu.es/sbweb/fisica3/fluidos/viento/parabolico.html*/
+        tt = 2*(v0y/g); /*hallar el timpo total*/
+        u = 10.0; /* velocidad del viento*/
+        alpha = 180;
+        ux = u * cos(alpha); /* velocidad del viento x*/
+        uy = u * sin(alpha); /* velocidad del viento y*/
+
+
+
+        for(float i = 0;i<=10;i++){
+        t1 = tempo*(i/10);  /*segun el numero de intervalos que se digito se divide el tiempo*/
+        x = ux*t1 + (v0x-ux)*(1-exp(-k*t1))/k;
+        y = y00 +(((g/k)+v0y-uy)*(1-exp(-k*t1)))/k-((g/k)-uy)*t1;;
+        vx = ux + (v0x-ux)* exp(-k*t1);;
+        vy= (((g/k)+v0y-uy)*exp(-k*t1))-(g/k)+uy;
+        v = sqrt((v0x*v0x)+(v0y*v0y));
+        printf("T=%4.4f  X=%4.4f  Y=%4.4f  Vx=%4.4f  Vy=%4.4f  V=%4.4f \n",t1,x,y,vx,vy,v);
+        }
+
+    }else{ /*basado en https://www.fisimat.com.mx/tiro-parabolico/*/
+
+        for(float i = 0;i<=10;i++){
+        t1 = tempo*(i/10); /*segun el numero de intervalos que se digito se divide el tiempo*/
+        x = v0x * t1;
+        y = y00 + (v0y*t1) - ((g * t1 * t1)/2.0f);
+        vx = v0x;
+        vy= v0y - g*t1;
+        v = sqrt((v0x*v0x)+(v0y*v0y));
+        printf("T=%4.4f  X=%4.4f  Y=%4.4f  Vx=%4.4f  Vy=%4.4f  V=%4.4f \n",t1,x,y,vx,vy,v);
+        }
+    }
+}
+void elasticas(float v01,float m1,float v02,float m2){
+    if(v01 == 0.0f){ /*cuando la masa 1 este en reposo*/
+        vf2=-1*((m1-m2)/(m1+m2))*v02;
+        vf1=((2*m2)/(m1+m2))*v02;
+
+    }
+    if(v02 == 0.0f){ /*cuando la masa 2 este en reposo*/
+        vf1=((m1-m2)/(m1+m2))*v01;
+        vf2=((2*m1)/(m1+m2))*v01;
+    }
+    if((v01 != 0.0f)&&(v02 != 0.0f)){ /*cuando las 2 masas estan en movimiento*/
+        vf1=(((m1-m2)/(m1+m2))*v01)+(((2*m2)/(m1+m2))*v02);
+        vf2=(((2*m1)/(m1+m2))*v01)-(((m1-m2)/(m1+m2))*v02);
+
+    }
+    cout<<"La velocidad que tiene la M1 es de:"<<vf1<<endl;
+    cout<<"La velocidad que tiene la M2 es de:"<<vf2<<endl<<endl<<endl;
+
+}
+void rebotes(float y00, float m1){
+    float e = 0.7; /* coeficiente de restitucion entre 0.4 y 1*/
+    int n = 00; /*pa saber cuantos rebotes da ggg*/
+    do{
+        n++;
+      y00 = pow(e,2*n)*y00;
+
+      printf("#%d   %4.4f \n",n,y00);
+    }
+    while(y00 >=0.001f);
+
+    printf ("reboto un total de %d veces \n",n);
+
+}
